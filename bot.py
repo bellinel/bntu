@@ -40,9 +40,9 @@ async def days_kb():
     kb.adjust(2)
     return kb.as_markup(resize_keyboard=True)
 
-async def back_kb():
+async def back_kb(message_id):
     kb = InlineKeyboardBuilder()
-    kb.button(text="Назад", callback_data="back")
+    kb.button(text="Назад", callback_data=f"back:{message_id}")
     return kb.as_markup(resize_keyboard=True)
 
 
@@ -62,15 +62,14 @@ async def cmd_start(message: types.Message):
 @dp.callback_query(F.data == "monday")
 async def mondey(callback: types.CallbackQuery):
     a = await callback.message.edit_text(text="Расписание на понедельник")
-    await callback.message.answer(text=Days.MONDEY_ONE_WEEK, reply_markup = await back_kb())
+    await callback.message.answer(text=Days.MONDEY_ONE_WEEK, reply_markup = await back_kb(a.message_id))
     message_id.append(a.message_id)
     
-
 @dp.callback_query(F.data == "tuesday")
 async def tuesday(callback: types.CallbackQuery):
     a = await callback.message.edit_text(text="Расписание на вторник")
-    await callback.message.answer(text=Days.TUESDAY_ONE_WEEK, reply_markup = await back_kb())
-    message_id.append(a.message_id)
+    await callback.message.answer(text=Days.TUESDAY_ONE_WEEK, reply_markup = await back_kb(a.message_id))
+    
 
 
 @dp.callback_query(F.data == "wednesday")
@@ -79,11 +78,11 @@ async def wednesday(callback: types.CallbackQuery):
     
     a = await callback.message.edit_text(text="Расписание на среду")
     if week == '1_week':
-        await callback.message.answer(text=Days.WEDNESDAY_ONE_WEEK, reply_markup = await back_kb())
+        await callback.message.answer(text=Days.WEDNESDAY_ONE_WEEK, reply_markup = await back_kb(a.message_id))
         
     if week == '2_week':
-        await callback.message.answer(text=Days.WEDNESDAY_TWO_WEEK, reply_markup = await back_kb())
-    message_id.append(a.message_id)
+        await callback.message.answer(text=Days.WEDNESDAY_TWO_WEEK, reply_markup = await back_kb(a.message_id))
+    
     
     
 
@@ -91,46 +90,48 @@ async def wednesday(callback: types.CallbackQuery):
 async def thursday(callback: types.CallbackQuery):
     a = await callback.message.edit_text(text="Расписание на четверг")
     if week == '1_week':
-        await callback.message.answer(text=Days.THURSDAY_ONE_WEEK, reply_markup = await back_kb())
+        await callback.message.answer(text=Days.THURSDAY_ONE_WEEK, reply_markup = await back_kb(a.message_id))
         
     if week == '2_week':
-        await callback.message.answer(text=Days.THURSDAY_TWO_WEEK, reply_markup = await back_kb())
+        await callback.message.answer(text=Days.THURSDAY_TWO_WEEK, reply_markup = await back_kb(a.message_id))
         
 
 @dp.callback_query(F.data == "friday")
 async def friday(callback: types.CallbackQuery):
     a = await callback.message.edit_text(text="Расписание на пятницу")
     if week == '1_week':
-        await callback.message.answer(text=Days.FRIDAY_ONE_WEEK, reply_markup = await back_kb())
+        await callback.message.answer(text=Days.FRIDAY_ONE_WEEK, reply_markup = await back_kb(a.message_id))
         
     if week == '2_week':
-        await callback.message.answer(text=Days.FRIDAY_TWO_WEEK, reply_markup = await back_kb())
-    message_id.append(a.message_id)
+        await callback.message.answer(text=Days.FRIDAY_TWO_WEEK, reply_markup = await back_kb(a.message_id))
+    
 
 
 @dp.callback_query(F.data == "saturday")
 async def saturday(callback: types.CallbackQuery):
     a = await callback.message.edit_text(text="Расписание на субботу")
     if week == '1_week':
-        await callback.message.answer(text=Days.SATURDAY_ONE_WEEK, reply_markup = await back_kb())
+        await callback.message.answer(text=Days.SATURDAY_ONE_WEEK, reply_markup = await back_kb(a.message_id))
     if week == '2_week':
-        await callback.message.answer(text=Days.SATURDAY_TWO_WEEK, reply_markup = await back_kb())   
+        await callback.message.answer(text=Days.SATURDAY_TWO_WEEK, reply_markup = await back_kb(a.message_id))   
     
     
     message_id.append(a.message_id)
 
-@dp.callback_query(F.data == "back")
+@dp.callback_query(F.data.startswith("back:"))
 async def back(callback: types.CallbackQuery):
+
+    message_id = callback.data.split(":")[1]
     await callback.message.delete()
-    for i in message_id:
-        await bot.delete_message(chat_id=callback.message.chat.id, message_id=i)
+   
+    await bot.delete_message(chat_id=callback.message.chat.id, message_id=message_id)
     if week == "1_week":
         week_now = 'первая неделя'
 
     if week == '2_week':
         week_now = 'вторая неделя'
     await callback.message.answer(text = f'Сегодня {week_now}\nВыбери день', reply_markup = await days_kb())
-    message_id.clear()
+    
 
 
 def is_sunday(date):
