@@ -25,6 +25,7 @@ message_id = []
 last_set_date = None
 current_index = -1
 current_value = None
+is_first_run = True 
 
 
 
@@ -48,7 +49,12 @@ async def back_kb():
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.answer(text = 'Выбери день', reply_markup = await days_kb())
+    if week == "1_week":
+        week_now = 'первая неделя'
+
+    if week == '2_week':
+        week_now = 'вторая неделя'
+    await message.answer(text = f'Сегодня {week_now}\n Выбери день', reply_markup = await days_kb())
 
 # Обработчик текстовых сообщений
 
@@ -118,7 +124,12 @@ async def back(callback: types.CallbackQuery):
     await callback.message.delete()
     for i in message_id:
         await bot.delete_message(chat_id=callback.message.chat.id, message_id=i)
-    await callback.message.answer(text = 'Выбери день', reply_markup = await days_kb())
+    if week == "1_week":
+        week_now = 'первая неделя'
+
+    if week == '2_week':
+        week_now = 'вторая неделя'
+    await callback.message.answer(text = f'Сегодня {week_now}\nВыбери день', reply_markup = await days_kb())
     message_id.clear()
 
 
@@ -138,7 +149,7 @@ async def refresh():
     if is_sunday(today):
         if last_set_date != today:
             # Если сегодня воскресенье и мы ещё не обновляли значение — переключаем
-            week = toggle_week(week) if week else '1_week'  # если первый запуск
+            week = toggle_week(week)   # если первый запуск
             last_set_date = today
             print(f"[{datetime.datetime.now()}] Воскресенье: week = {week}")
         else:
